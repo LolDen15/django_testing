@@ -1,6 +1,5 @@
 from http import HTTPStatus
 
-import pytest
 from django.urls import reverse
 from pytest_django.asserts import assertFormError, assertRedirects
 
@@ -18,9 +17,10 @@ BAD_WORDS_DATA = {
 def test_user_can_create_note(
         author_client,
         author,
-        news):
+        news,
+        news_detail_url):
     initial_comment_count = Comment.objects.count()
-    url = reverse('news:detail', args=(news.id,))
+    url = news_detail_url
     response = author_client.post(url, data=FORM_DATA)
     assertRedirects(response, f'{url}#comments')
     assert Comment.objects.count() == initial_comment_count + 1
@@ -30,10 +30,9 @@ def test_user_can_create_note(
     assert new_comment.author == author
 
 
-@pytest.mark.django_db
-def test_anonymous_user_cannot_create_note(client, news):
+def test_anonymous_user_cannot_create_note(client, news, news_detail_url):
     count = Comment.objects.count()
-    url = reverse('news:detail', args=(news.id,))
+    url = news_detail_url
     response = client.post(url, data=FORM_DATA)
     login_url = reverse('users:login')
     expected_url = f'{login_url}?next={url}'
@@ -43,16 +42,19 @@ def test_anonymous_user_cannot_create_note(client, news):
 
 def test_user_cannot_use_bad_words(
         author_client,
-        news):
+        news,
+        news_detail_url):
     count = Comment.objects.count()
-    url = reverse('news:detail', args=(news.id,))
+    url = news_detail_url
     response = author_client.post(url, data=BAD_WORDS_DATA)
     assertFormError(response, 'form', 'text', errors=WARNING)
     assert Comment.objects.count() == count
 
 
 def test_author_can_edit_comment(
+        author,
         author_client,
+        news,
         comment,
         edit_url,
         url_to_comments):
@@ -63,13 +65,15 @@ def test_author_can_edit_comment(
     assertRedirects(response, url_to_comments)
     comment.refresh_from_db()
     assert comment.text == FORM_DATA['text']
+    assert comment.author == author
+    assert comment.news == news
 
 
 def test_other_user_cannot_edit_comment(
-        admin_client,
+        reader_client,
         comment,
         edit_url):
-    response = admin_client.post(edit_url, data=FORM_DATA)
+    response = reader_client.post(edit_url, data=FORM_DATA)
     assert response.status_code == HTTPStatus.NOT_FOUND
     comment_from_db = Comment.objects.get(id=comment.id)
     assert comment.text == comment_from_db.text
@@ -85,8 +89,8 @@ def test_author_can_delete_comment(
     assert Comment.objects.count() == count
 
 
-def test_other_user_cannot_delete_comment(admin_client, delete_url):
+def test_other_user_cannot_delete_comment(reader_client, delete_url):
     count = Comment.objects.count()
-    response = admin_client.delete(delete_url)
+    response = reader_client.delete(delete_url)
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert Comment.objects.count() == count

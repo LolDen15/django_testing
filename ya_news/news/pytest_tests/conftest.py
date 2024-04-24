@@ -8,7 +8,8 @@ from django.utils import timezone
 from news.models import Comment, News
 
 
-@pytest.fixture
+@pytest.mark.django_db
+@pytest.fixture(autouse=True)
 def author(django_user_model):
     return django_user_model.objects.create(username='Автор')
 
@@ -16,6 +17,17 @@ def author(django_user_model):
 @pytest.fixture
 def author_client(author, client):
     client.force_login(author)
+    return client
+
+
+@pytest.fixture
+def reader(django_user_model):
+    return django_user_model.objects.create(username='Читатель')
+
+
+@pytest.fixture
+def reader_client(reader, client):
+    client.force_login(reader)
     return client
 
 
@@ -36,7 +48,7 @@ def comment(news, author):
 @pytest.fixture
 def comments(news, author):
     now = timezone.now()
-    for index in range(2):
+    for index in range(10):
         comment = Comment.objects.create(
             news=news,
             author=author,

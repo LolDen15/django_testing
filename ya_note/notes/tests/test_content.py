@@ -38,14 +38,13 @@ class TestContent(TestCase):
             with self.subTest(user=user, notes_list=notes_list):
                 response = user.get(reverse('notes:list'))
                 notes_object = self.note in response.context['object_list']
-                self.assertEqual(notes_object, notes_list)
+                self.assertIs(notes_object, notes_list)
 
-    def test_create_note_page_have_form(self):
-        response = self.author_client.get(self.url_note_add)
-        self.assertIn('form', response.context)
-        form = response.context.get('form')
-        self.assertIsInstance(form, NoteForm)
-
-    def test_edit_note_page_have_form(self):
-        response = self.author_client.get(self.url_note_edit)
-        self.assertIn('form', response.context)
+    def test_note_pages_have_form(self):
+        urls = [self.url_note_add, self.url_note_edit]
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.author_client.get(url)
+                self.assertIn('form', response.context)
+                form = response.context.get('form')
+                self.assertIsInstance(form, NoteForm)
