@@ -2,7 +2,12 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from notes.forms import NoteForm
-from notes.tests.config import BaseClass, LIST_URL
+from notes.tests.config import (
+    BaseClass,
+    LIST_URL,
+    ADD_URL,
+    EDIT_URL,
+)
 
 User = get_user_model()
 
@@ -21,7 +26,7 @@ class TestContent(BaseClass, TestCase):
                 self.assertIs(notes_object, notes_list)
 
     def test_note_pages_have_form(self):
-        urls = [self.url_note_add, self.url_note_edit]
+        urls = [ADD_URL, EDIT_URL]
         for url in urls:
             with self.subTest(url=url):
                 response = self.author_client.get(url)

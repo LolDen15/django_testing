@@ -63,10 +63,10 @@ def test_author_can_edit_comment(
         data=FORM_DATA
     )
     assertRedirects(response, url_to_comments)
-    comment.refresh_from_db()
-    assert comment.text == FORM_DATA['text']
-    assert comment.author == author
-    assert comment.news == news
+    comment_from_db = Comment.objects.get(id=comment.id)
+    assert comment_from_db.text == FORM_DATA['text']
+    assert comment_from_db.author == comment.author
+    assert comment_from_db.news == comment.news
 
 
 def test_other_user_cannot_edit_comment(
@@ -77,6 +77,8 @@ def test_other_user_cannot_edit_comment(
     assert response.status_code == HTTPStatus.NOT_FOUND
     comment_from_db = Comment.objects.get(id=comment.id)
     assert comment.text == comment_from_db.text
+    assert comment.author == comment_from_db.author
+    assert comment.news == comment_from_db.news
 
 
 def test_author_can_delete_comment(

@@ -44,11 +44,6 @@ class BaseClass(TestCase):
             text=cls.NOTE_TEXT,
             slug=cls.NOTE_SLUG
         )
-        cls.url_success = SUCCESS_URL
-        cls.url_note_list = LIST_URL
-        cls.url_note_add = ADD_URL
-        cls.url_note_edit = EDIT_URL
-        cls.url_delete = DELETE_URL
         cls.form_data = {
             'title': cls.NEW_NOTE_TEXT,
             'text': cls.NEW_NOTE_TEXT,
